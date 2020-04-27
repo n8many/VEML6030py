@@ -157,6 +157,11 @@ class VEML6030(object):
             raise ValueError("Invalid bus, must pass in SMBus object")
         self.bus = bus
 
+        # Initialize sensor with default values
+        self.power_on()
+        self.set_gain(Gain.x1_4)
+        self.set_integration_time(IntegrationTime.ms50)
+
     def set_gain(self, gain):
         """
         Set gain for VEML6030
