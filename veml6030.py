@@ -134,6 +134,7 @@ def get_bits(register, index, length=1):
 MAX_LUX = 120000
 MIN_LUX = 0
 
+
 class VEML6030(object):
 
     def __init__(self, bus, address=ADDRESS[0]):
@@ -271,7 +272,7 @@ class VEML6030(object):
         """
         Sets the mode for power saving, see Datasheet pg. 9 for details
 
-        :param mode:
+        :param mode: Power saving mode
         :type mode: PowerSaveMode
         """
         self._write_bits_to_register(POWER_SAVE_REG, mode, 1, 2)
@@ -300,7 +301,7 @@ class VEML6030(object):
         Note: Values out of the range [0, 120000] will raise a ValueError
 
         :param lux: Lux value for threshold (uncompensated)
-        :type lux: int
+        :type lux: float
         """
         if lux < MIN_LUX or lux > MAX_LUX:
             raise ValueError(f"Lux value {lux} out of range")
@@ -313,7 +314,7 @@ class VEML6030(object):
         Get the low lux threshold for ambient light readings
 
         :return: Lux value for threshold (uncompensated)
-        :rtype: int
+        :rtype: float
         """
         count = self._read_register(L_THRESH_REG)
         return self._calculate_lux(count)
@@ -324,7 +325,7 @@ class VEML6030(object):
         Note: Values out of the range [0, 120000] will raise a ValueError
 
         :param lux: Lux value for threshold (uncompensated)
-        :type lux: int
+        :type lux: float
         """
         if lux < MIN_LUX or lux > MAX_LUX:
             raise ValueError(f"Lux value {lux} out of range")
@@ -337,7 +338,7 @@ class VEML6030(object):
         Get the high lux threshold for ambient light readings
 
         :return: Lux value for threshold (uncompensated)
-        :rtype: int
+        :rtype: float
         """
         count = self._read_register(H_THRESH_REG)
         return self._calculate_lux(count)
@@ -350,7 +351,7 @@ class VEML6030(object):
         Only set to false if gathering values for thresholds
         :type compensate: bool
         :return: Ambient light read by sensor
-        :rtype: int
+        :rtype: float
         """
         count = self._read_register(AMBIENT_LIGHT_DATA_REG)
         lux = self._calculate_lux(count)
@@ -369,7 +370,7 @@ class VEML6030(object):
         Only set to false if gathering values for thresholds
         :type compensate: bool
         :return: White light read by sensor
-        :rtype: int
+        :rtype: float
         """
         count = self._read_register(WHITE_LIGHT_DATA_REG)
         lux = self._calculate_lux(count)
@@ -386,9 +387,9 @@ class VEML6030(object):
         There is no reverse compensation available.
 
         :param lux: Raw lux value (only use if lux > 1000)
-        :type lux: int
+        :type lux: float
         :return: Compensated lux
-        :rtype: int
+        :rtype: float
         """
         # TODO: Create reverse lux compensation
 
@@ -399,23 +400,24 @@ class VEML6030(object):
 
     def _calculate_lux(self, count):
         """
-
+        Calculate lux from digital count bits (based on current gain and integration time)
 
         :param count:
         :type count: int
         :return:
-        :rtype: int
+        :rtype: float
         """
         g = self.get_gain()
         it = self.get_integration_time()
 
-        return int(round(count*_lux_coeff[it][g]))
+        return count*_lux_coeff[it][g]
 
     def _calculate_dc(self, lux):
         """
+        Calculate digital count that corresponds to lux value (based on current gain and integration time)
 
         :param lux:
-        :type lux: int
+        :type lux: float
         :return:
         :rtype: int
         """
